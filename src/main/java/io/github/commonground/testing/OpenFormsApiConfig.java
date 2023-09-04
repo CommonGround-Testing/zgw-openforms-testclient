@@ -1,4 +1,4 @@
-package nl.commonground.testing;
+package io.github.commonground.testing;
 
 import lombok.Getter;
 

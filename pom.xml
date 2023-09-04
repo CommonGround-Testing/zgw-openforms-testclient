@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.commonground.testing</groupId>
+    <groupId>io.github.commonground-testing</groupId>
     <artifactId>zgw-openforms-testclient</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
@@ -21,6 +21,20 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <id>basdijkstra</id>
+            <name>Bas Dijkstra</name>
+            <email>bas.dijkstra@denhaag.nl</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:CommonGround-Testing/zgw-openforms-testclient.git</connection>
+        <developerConnection>scm:git:ssh://@github.com:CommonGround-Testing/zgw-openforms-testclient.git</developerConnection>
+        <url>https://github.com/CommonGround-Testing/zgw-openforms-testclient/tree/main</url>
+    </scm>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -28,6 +42,8 @@
         <awaitility.version>4.2.0</awaitility.version>
         <lombok.version>1.18.28</lombok.version>
         <log4j.version>2.20.0</log4j.version>
+        <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
+        <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
         <maven.checkstyle.plugin.version>3.3.0</maven.checkstyle.plugin.version>
         <checkstyle.version>10.12.1</checkstyle.version>
     </properties>
@@ -68,6 +84,32 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven.javadoc.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>

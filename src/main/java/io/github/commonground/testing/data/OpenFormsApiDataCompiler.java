@@ -1,4 +1,4 @@
-package nl.commonground.testing.data;
+package io.github.commonground.testing.data;
 
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
