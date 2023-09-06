@@ -1,5 +1,8 @@
 # ZGW OpenForms TestClient
 
+![github-actions-ci](https://github.com/CommonGround-Testing/zgw-openforms-testclient/actions/workflows/ci.yml/badge.svg) ![Maven Central](https://img.shields.io/maven-central/v/io.github.commonground-testing/zgw-openforms-testclient)
+
+
 Deze library is bedoeld om het eenvoudiger te maken om nieuwe OpenForms-submissions aan te maken voor integratie- en ketentestdoeleinden.
 
 Een voorbeeld van het gebruik van deze library:
