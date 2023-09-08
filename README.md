@@ -24,3 +24,21 @@ public void aFormSubmittedUsingTheOpenFormsApiClient_ShouldBeVisibleInGzac() {
     assertTrue(<insert verificatie dat zaak correct in GZAC is aangemaakt>);
 }
 ```
+
+Om succesvol een submission aan te maken moet het volgende worden meegegeven aan `createSubmission()`:
+
+| parameter | type | functie                                                                                                          | 
+| --- | --- |------------------------------------------------------------------------------------------------------------------|
+| csrfCookie | `String` | CSRF cookie gekoppeld aan een actieve OpenForms-gebruikerssessie                                                 |
+| sessionCookie | `String` | Session cookie gekoppeld aan dezelfde actieve OpenForms-gebruikerssessie                                         |
+| formStepdata | `List<FormStepData>` | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
+
+Het `FormStepData`-object heeft 3 properties:
+
+| property | type | functie | verplicht |
+| --- | --- | --- | --- |
+| data | `HashMap<String, Object>` | De data die voor een specifieke formulierstap moet worden ingevuld | ja |
+| metadata | `HashMap<String, Object>` | Eventueel gewenste meta-data die moet worden meegezonden in een formulierstap | nee (default: leeg) |
+| state | String | De gewenste status van de formulierstap in de submission | nee (default: `"submitted"`) |
+
+De OpenFormsApiClient zorgt dat de inhoud van deze velden op de juiste manier naar JSON wordt geserialiseerd.
