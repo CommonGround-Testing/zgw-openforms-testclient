@@ -42,3 +42,10 @@ Het `FormStepData`-object heeft 3 properties:
 | state | String | De gewenste status van de formulierstap in de submission | nee (default: `"submitted"`) |
 
 De OpenFormsApiClient zorgt dat de inhoud van deze velden op de juiste manier naar JSON wordt geserialiseerd.
+
+#### Anonieme submissions
+Wanneer een formulier anonieme submissions toestaat (er hoeft dus niet te worden ingelogd), kan dat met de methode `createAnonymousSubmission()`. Deze heeft slechts 1 argument:
+
+| parameter | type | functie                                                                                                          |
+| --- | --- |------------------------------------------------------------------------------------------------------------------|
+| formStepdata | `List<FormStepData>` | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
