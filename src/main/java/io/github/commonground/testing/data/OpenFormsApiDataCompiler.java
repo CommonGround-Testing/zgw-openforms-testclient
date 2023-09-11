@@ -8,7 +8,7 @@ import java.util.List;
 
 public class OpenFormsApiDataCompiler {
 
-    public static List<FormStep> compileDataForFormSteps(Response response, List<FormStepData> formStepData) {
+    public static void verifyNumberOfSteps(Response response, List<FormStepData> formStepData) {
 
         JsonPath jsonPath = new JsonPath(response.asString());
         int numberOfStepsInResponse = jsonPath.getInt("steps.uuid.size()");
@@ -22,6 +22,9 @@ public class OpenFormsApiDataCompiler {
                     )
             );
         }
+    }
+
+    public static List<FormStep> compileDataForFormSteps(Response response, List<FormStepData> formStepData) {
 
         List<FormStep> steps = new ArrayList<>();
 

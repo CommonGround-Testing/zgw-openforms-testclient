@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+### [1.1.0] - 2023-09-11
+
+#### Added
+
+- Added flag to turn on / off verification of supplied number of form step data elements against number of steps in form
+- Added explicit deletion of submission steps 
+
+#### Fixed
+
+- Fixed logging, all calls will now be logged (request and response) in case of verification failure 
+
 ### [1.0.0] - 2023-09-04
 
 #### Added

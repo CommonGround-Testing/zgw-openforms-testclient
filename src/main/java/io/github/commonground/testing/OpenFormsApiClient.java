@@ -1,5 +1,6 @@
 package io.github.commonground.testing;
 
+import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -20,6 +21,8 @@ import static io.restassured.RestAssured.given;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 
 /**
  * OpenFormsApiClient is a class providing helper methods for easier creation of OpenForms
@@ -46,6 +49,8 @@ public class OpenFormsApiClient {
     public OpenFormsApiClient(String formName) {
         this.formName = formName;
         this.config = new OpenFormsApiConfig(loadProperties());
+
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
     /**
@@ -53,6 +58,17 @@ public class OpenFormsApiClient {
      * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
     public void createAnonymousSubmission(List<FormStepData> formStepData) {
+
+        this.createAnonymousSubmission(formStepData, false);
+    }
+
+    /**
+     * Starts an anonymous submission for the form that this <code>OpenFormsApiClient</code> is associated with.
+     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
+     * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
+     *                                of form step data elements does not match the number of steps in the form.
+     */
+    public void createAnonymousSubmission(List<FormStepData> formStepData, boolean failOnStepCountMismatch) {
 
         String formUrl = String.format("%s/%s", this.config.getBaseUri(), this.formName);
 
@@ -74,11 +90,17 @@ public class OpenFormsApiClient {
 
         getFormDetailsFor(formUrl);
 
+        if (failOnStepCountMismatch) {
+            OpenFormsApiDataCompiler.verifyNumberOfSteps(this.formDetailsResponse, formStepData);
+        }
+
         startFormSubmissionFor(formUrl);
 
         completeFormSteps(formStepData);
 
         finalizeSubmission();
+
+        deleteSubmissionSession();
     }
 
     /**
@@ -86,8 +108,23 @@ public class OpenFormsApiClient {
      * associated with the supplied <code>csrfCookie</code> and <code>sessionCookie</code>.
      * @param csrfCookie The CSRF cookie used to prevent cross-site request forgery attacks.
      * @param sessionCookie The session cookie returned when a user is successfully authenticated for this form.
+     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
     public void createSubmission(String csrfCookie, String sessionCookie, List<FormStepData> formStepData) {
+
+        this.createSubmission(csrfCookie, sessionCookie, formStepData, false);
+    }
+
+    /**
+     * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
+     * associated with the supplied <code>csrfCookie</code> and <code>sessionCookie</code>.
+     * @param csrfCookie The CSRF cookie used to prevent cross-site request forgery attacks.
+     * @param sessionCookie The session cookie returned when a user is successfully authenticated for this form.
+     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
+     * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
+     *                                of form step data elements does not match the number of steps in the form.
+     */
+    public void createSubmission(String csrfCookie, String sessionCookie, List<FormStepData> formStepData, boolean failOnStepCountMismatch) {
 
         String formUrl = String.format("%s/%s", this.config.getBaseUri(), this.formName);
 
@@ -97,119 +134,17 @@ public class OpenFormsApiClient {
 
         getFormDetailsFor(formUrl);
 
+        if (failOnStepCountMismatch) {
+            OpenFormsApiDataCompiler.verifyNumberOfSteps(this.formDetailsResponse, formStepData);
+        }
+
         startFormSubmissionFor(formUrl);
 
         completeFormSteps(formStepData);
 
         finalizeSubmission();
-    }
 
-    private void completeFormSteps(List<FormStepData> formStepData) {
-
-        LOGGER.info("Compiling form data for form '{}'", this.formName);
-
-        List<FormStep> formSteps = OpenFormsApiDataCompiler.compileDataForFormSteps(this.formDetailsResponse, formStepData);
-
-        LOGGER.info("Submitting form steps using form data...");
-
-        for(FormStep formStep : formSteps) {
-
-            String referer = String.format("%s/%s/stap/%s", this.config.getBaseUri(), this.formName, formStep.getName());
-            String formStepEndpoint = String.format("/submissions/%s/steps/%s", this.submissionId, formStep.getUuid());
-
-            this.response = given().log().ifValidationFails()
-                    .spec(this.openFormsRequestSpec)
-                    .header("Referer", referer)
-                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
-                    .when()
-                    .get(formStepEndpoint)
-                    .then().log().ifValidationFails()
-                    .statusCode(200)
-                    .extract().response();
-
-            this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
-
-            this.response = given().log().ifValidationFails()
-                    .spec(this.openFormsRequestSpec)
-                    .header("Referer", referer)
-                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
-                    .body(formStep.getData())
-                    .when()
-                    .post(String.format("%s/validate", formStepEndpoint))
-                    .then().log().ifValidationFails()
-                    .statusCode(204)
-                    .extract().response();
-
-            this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
-
-            this.response = given().log().ifValidationFails()
-                    .spec(this.openFormsRequestSpec)
-                    .header("Referer", referer)
-                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
-                    .body(formStep.getData())
-                    .when()
-                    .put(formStepEndpoint)
-                    .then().log().ifValidationFails()
-                    .statusCode(201)
-                    .body("slug", equalTo(formStep.getName()))
-                    .body("completed", equalTo(true))
-                    .extract().response();
-
-            this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
-        }
-    }
-
-    private void finalizeSubmission() {
-
-        LOGGER.info("Finalize submission of form '{}'", this.formName);
-
-        this.response = given()
-                .spec(this.openFormsRequestSpec)
-                .header("Referer", String.format("%s/%s/overzicht", this.config.getBaseUri(), this.formName))
-                .when()
-                .get(String.format("/submissions/%s/summary", this.submissionId))
-                .then()
-                .statusCode(200)
-                .extract().response();
-
-        this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
-
-        HashMap<String, Object> formData = new HashMap<>();
-        formData.put("privacyPolicyAccepted", true);
-
-        this.response = given()
-                .spec(this.openFormsRequestSpec)
-                .header("Referer", String.format("%s/%s/overzicht", this.config.getBaseUri(), this.formName))
-                .header(this.config.getCsrfHeaderName(), this.csrfToken)
-                .body(formData)
-                .when()
-                .post(String.format("/submissions/%s/_complete", this.submissionId))
-                .then()
-                .statusCode(200)
-                .extract().response();
-
-        String statusUrl = this.response.path("statusUrl");
-
-        await()
-                .atMost(this.config.getPollingTimeout(), SECONDS)
-                .pollInterval(this.config.getPollingInterval(), SECONDS)
-                .untilAsserted(() -> this.submissionIsComplete(statusUrl));
-    }
-
-    private Properties loadProperties() {
-
-        Properties prop = new Properties();
-
-        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("openforms.properties"))
-        {
-            if (stream == null) {
-                throw new FileNotFoundException("Could not find file 'openforms.properties' on the classpath.");
-            }
-            prop.load(stream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return prop;
+        deleteSubmissionSession();
     }
 
     private void createRequestSpecificationUsing(String csrfCookie, String sessionCookie) {
@@ -263,6 +198,132 @@ public class OpenFormsApiClient {
 
         this.submissionId = this.response.path("id");
         this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
+    }
+
+    private void completeFormSteps(List<FormStepData> formStepData) {
+
+        LOGGER.info("Compiling form data for form '{}'", this.formName);
+
+        List<FormStep> formSteps = OpenFormsApiDataCompiler.compileDataForFormSteps(this.formDetailsResponse, formStepData);
+
+        LOGGER.info("Submitting form steps using form data...");
+
+        for(FormStep formStep : formSteps) {
+
+            String referer = String.format("%s/%s/stap/%s", this.config.getBaseUri(), this.formName, formStep.getName());
+            String formStepEndpoint = String.format("/submissions/%s/steps/%s", this.submissionId, formStep.getUuid());
+
+            this.response = given()
+                    .spec(this.openFormsRequestSpec)
+                    .header("Referer", referer)
+                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
+                    .when()
+                    .get(formStepEndpoint)
+                    .then()
+                    .statusCode(200)
+                    .extract().response();
+
+            this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
+
+            this.response = given()
+                    .spec(this.openFormsRequestSpec)
+                    .header("Referer", referer)
+                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
+                    .body(formStep.getData())
+                    .when()
+                    .post(String.format("%s/validate", formStepEndpoint))
+                    .then()
+                    .statusCode(204)
+                    .extract().response();
+
+            this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
+
+            this.response = given()
+                    .spec(this.openFormsRequestSpec)
+                    .header("Referer", referer)
+                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
+                    .body(formStep.getData())
+                    .when()
+                    .put(formStepEndpoint)
+                    .then()
+                    .statusCode(201)
+                    .body("slug", equalTo(formStep.getName()))
+                    .body("completed", equalTo(true))
+                    .extract().response();
+
+            this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
+        }
+    }
+
+    private void finalizeSubmission() {
+
+        LOGGER.info("Finalizing submission of form '{}'", this.formName);
+
+        this.response = given()
+                .spec(this.openFormsRequestSpec)
+                .header("Referer", String.format("%s/%s/overzicht", this.config.getBaseUri(), this.formName))
+                .when()
+                .get(String.format("/submissions/%s/summary", this.submissionId))
+                .then()
+                .statusCode(200)
+                .extract().response();
+
+        this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
+
+        HashMap<String, Object> formData = new HashMap<>();
+        formData.put("privacyPolicyAccepted", true);
+
+        this.response = given()
+                .spec(this.openFormsRequestSpec)
+                .header("Referer", String.format("%s/%s/overzicht", this.config.getBaseUri(), this.formName))
+                .header(this.config.getCsrfHeaderName(), this.csrfToken)
+                .body(formData)
+                .when()
+                .post(String.format("/submissions/%s/_complete", this.submissionId))
+                .then()
+                .statusCode(200)
+                .extract().response();
+
+        String statusUrl = this.response.path("statusUrl");
+
+        this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
+
+        await()
+                .atMost(this.config.getPollingTimeout(), SECONDS)
+                .pollInterval(this.config.getPollingInterval(), SECONDS)
+                .untilAsserted(() -> this.submissionIsComplete(statusUrl));
+    }
+
+    private void deleteSubmissionSession() {
+
+        LOGGER.info("Deleting session for submission with ID {}...", this.submissionId);
+
+        given()
+                .spec(this.openFormsRequestSpec)
+                .header("Referer", String.format("%s/%s/overzicht", this.config.getBaseUri(), this.formName))
+                .header(this.config.getCsrfHeaderName(), this.csrfToken)
+                .when()
+                .delete(String.format("/authentication/%s/session", this.submissionId))
+                .then()
+                .statusCode(anyOf(is(204), is(403)));
+
+        LOGGER.info("Deleted session for submission with ID {}", this.submissionId);
+    }
+
+    private Properties loadProperties() {
+
+        Properties prop = new Properties();
+
+        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("openforms.properties"))
+        {
+            if (stream == null) {
+                throw new FileNotFoundException("Could not find file 'openforms.properties' on the classpath.");
+            }
+            prop.load(stream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return prop;
     }
 
     private void submissionIsComplete(String statusUrl) {
