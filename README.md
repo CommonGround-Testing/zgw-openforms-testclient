@@ -49,3 +49,22 @@ Wanneer een formulier anonieme submissions toestaat (er hoeft dus niet te worden
 | parameter | type | functie                                                                                                          |
 | --- | --- |------------------------------------------------------------------------------------------------------------------|
 | formStepdata | `List<FormStepData>` | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
+
+#### Configuratie
+Om de library te configureren en default settings te overschrijven, voeg een `openforms.properties` file toe aan je classpath.
+
+Deze settings worden ondersteund door de library:
+
+| setting | omschrijving | default waarde        |
+| --- | --- |-----------------------|
+| `csrf.cookie.name` | Naam van het CSRF-cookie gebruikt door OpenForms | `csrftoken`           |
+| `csrf.header.name` | Naam van de CSRF-header | `X-CSRFToken`         |
+| `session.cookie.name` | Naam van de OpenForms session cookie | `openforms_sessionid` |
+| `base.uri` | Base URI voor de endpoints waar de formulieren te vinden zijn | _geen waarde_         |
+| `base.path` | Base path voor de endpoints | `api/v2`              |
+| `polling.timeout` | Timeout voor polling-mechanisme (gebruikt om te checken of submission de gewenste status heeft) | `120` (seconden)      |
+| `polling.interval` | Polling-interval | `2` (seconden)        |
+
+#### Voorbeeldimplementatie
+
+Volgt snel.
