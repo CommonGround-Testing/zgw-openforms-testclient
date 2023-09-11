@@ -2,6 +2,7 @@
 
 ![github-actions-ci](https://github.com/CommonGround-Testing/zgw-openforms-testclient/actions/workflows/ci.yml/badge.svg) ![Maven Central](https://img.shields.io/maven-central/v/io.github.commonground-testing/zgw-openforms-testclient)
 
+## De library
 
 Deze library is bedoeld om het eenvoudiger te maken om nieuwe OpenForms-submissions aan te maken voor integratie- en ketentestdoeleinden.
 
@@ -43,14 +44,14 @@ Het `FormStepData`-object heeft 3 properties:
 
 De OpenFormsApiClient zorgt dat de inhoud van deze velden op de juiste manier naar JSON wordt geserialiseerd.
 
-#### Anonieme submissions
+## Anonieme submissions
 Wanneer een formulier anonieme submissions toestaat (er hoeft dus niet te worden ingelogd), kan dat met de methode `createAnonymousSubmission()`. Deze heeft slechts 1 argument:
 
 | parameter | type | functie                                                                                                          |
 | --- | --- |------------------------------------------------------------------------------------------------------------------|
 | formStepdata | `List<FormStepData>` | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
 
-#### Configuratie
+## Configuratie
 Om de library te configureren en default settings te overschrijven, voeg een `openforms.properties` file toe aan je classpath.
 
 Deze settings worden ondersteund door de library:
@@ -65,6 +66,6 @@ Deze settings worden ondersteund door de library:
 | `polling.timeout` | Timeout voor polling-mechanisme (gebruikt om te checken of submission de gewenste status heeft) | `120` (seconden)      |
 | `polling.interval` | Polling-interval | `2` (seconden)        |
 
-#### Voorbeeldimplementatie
+## Voorbeeldimplementatie
 
 Volgt snel.
