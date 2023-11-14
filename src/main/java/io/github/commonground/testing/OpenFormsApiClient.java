@@ -217,7 +217,6 @@ public class OpenFormsApiClient {
             this.response = given()
                     .spec(this.openFormsRequestSpec)
                     .header("Referer", referer)
-                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
                     .when()
                     .get(formStepEndpoint)
                     .then()
