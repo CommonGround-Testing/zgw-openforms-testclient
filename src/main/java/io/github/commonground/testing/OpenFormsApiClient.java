@@ -209,7 +209,7 @@ public class OpenFormsApiClient {
 
         LOGGER.info("Submitting form steps using form data...");
 
-        for(FormStep formStep : formSteps) {
+        for (FormStep formStep : formSteps) {
 
             String referer = String.format("%s/%s/stap/%s", this.config.getBaseUri(), this.formName, formStep.getName());
             String formStepEndpoint = String.format("/submissions/%s/steps/%s", this.submissionId, formStep.getUuid());
