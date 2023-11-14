@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
@@ -106,32 +107,33 @@ public class OpenFormsApiClient {
 
     /**
      * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
-     * associated with the supplied <code>csrfCookie</code> and <code>sessionCookie</code>.
-     * @param csrfCookie The CSRF cookie used to prevent cross-site request forgery attacks.
-     * @param sessionCookie The session cookie returned when a user is successfully authenticated for this form.
+     * associated with the supplied <code>cookies</code>.
+     * @param cookies A map containing all cookies in order to successfully authenticate, prevent cross-site forgery
+     * attacks, etc.
      * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
-    public void createSubmission(String csrfCookie, String sessionCookie, List<FormStepData> formStepData) {
+    public void createSubmission(Map<String, String> cookies, List<FormStepData> formStepData) {
 
-        this.createSubmission(csrfCookie, sessionCookie, formStepData, false);
+        this.createSubmission(cookies, formStepData, false);
     }
 
     /**
      * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
-     * associated with the supplied <code>csrfCookie</code> and <code>sessionCookie</code>.
-     * @param csrfCookie The CSRF cookie used to prevent cross-site request forgery attacks.
-     * @param sessionCookie The session cookie returned when a user is successfully authenticated for this form.
-     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
+     * associated with the supplied <code>cookies</code>.
+     * @param cookies A map containing all cookies in order to successfully authenticate, prevent cross-site forgery
+     * attacks, etc.
+     *
+     * @param formStepData            a list of <code>FormStepData</code> objects to be used when creating the submission.
      * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
      *                                of form step data elements does not match the number of steps in the form.
      */
-    public void createSubmission(String csrfCookie, String sessionCookie, List<FormStepData> formStepData, boolean failOnStepCountMismatch) {
+    public void createSubmission(Map<String, String> cookies, List<FormStepData> formStepData, boolean failOnStepCountMismatch) {
 
         String formUrl = String.format("%s/%s", this.config.getBaseUri(), this.formName);
 
         LOGGER.info("Initializing submission of form '{}'", this.formName);
 
-        createRequestSpecificationUsing(csrfCookie, sessionCookie);
+        createRequestSpecificationUsing(cookies);
 
         getFormDetailsFor(formUrl);
 
@@ -148,14 +150,13 @@ public class OpenFormsApiClient {
         deleteSubmissionSession();
     }
 
-    private void createRequestSpecificationUsing(String csrfCookie, String sessionCookie) {
+    private void createRequestSpecificationUsing(Map<String, String> cookies) {
 
         this.openFormsRequestSpec = new RequestSpecBuilder()
                 .setBaseUri(this.config.getBaseUri())
                 .setBasePath(this.config.getBasePath())
                 .setContentType(ContentType.JSON)
-                .addCookie(this.config.getCsrfCookieName(), csrfCookie)
-                .addCookie(this.config.getSessionCookieName(), sessionCookie)
+                .addCookies(cookies)
                 .build();
     }
 
