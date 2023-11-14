@@ -316,8 +316,7 @@ public class OpenFormsApiClient {
 
         Properties prop = new Properties();
 
-        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("openforms.properties"))
-        {
+        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("openforms.properties")) {
             if (stream == null) {
                 throw new FileNotFoundException("Could not find file 'openforms.properties' on the classpath.");
             }
