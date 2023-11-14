@@ -13,14 +13,15 @@ Een voorbeeld van het gebruik van deze library:
 public void aFormSubmittedUsingTheOpenFormsApiClient_ShouldBeVisibleInGzac() {
 
     final String formulier = "voorbeeld-formulier";
-
-    final String csrfCookie = <insert code om CSRF-cookie voor OpenForms-sessie op te halen> 
-    final String sessionCookie = <insert code om session-cookie voor OpenForms-sessie op te halen> 
     
+    final Map<String, String> cookies = new HashMap<>();
+    
+    // TODO: cookies vullen met cookies voor bestaande OpenForms-sessie
+ 
     final List<FormStepData> formData = <insert code om data voor de formulierstappen te genereren>
 
     final OpenFormsApiClient openFormsApi = new OpenFormsApiClient(formulier);
-    openFormsApi.createSubmission(csrfCookie, sessionCookie, formData);
+    openFormsApi.createSubmission(cookies, formData);
     
     assertTrue(<insert verificatie dat zaak correct in GZAC is aangemaakt>);
 }
@@ -28,11 +29,10 @@ public void aFormSubmittedUsingTheOpenFormsApiClient_ShouldBeVisibleInGzac() {
 
 Om succesvol een submission aan te maken moet het volgende worden meegegeven aan `createSubmission()`:
 
-| parameter | type | functie                                                                                                          | 
-| --- | --- |------------------------------------------------------------------------------------------------------------------|
-| csrfCookie | `String` | CSRF cookie gekoppeld aan een actieve OpenForms-gebruikerssessie                                                 |
-| sessionCookie | `String` | Session cookie gekoppeld aan dezelfde actieve OpenForms-gebruikerssessie                                         |
-| formStepdata | `List<FormStepData>` | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
+| parameter     | type                  | functie                                                                                                          | 
+|---------------|-----------------------|------------------------------------------------------------------------------------------------------------------|
+| cookies       | `Map<String, String>` | Cookies gekoppeld aan een actieve OpenForms-gebruikerssessie                                                     |
+| formStepdata  | `List<FormStepData>`  | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
 
 Het `FormStepData`-object heeft 3 properties:
 
