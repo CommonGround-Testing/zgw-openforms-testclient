@@ -272,6 +272,7 @@ public class OpenFormsApiClient {
 
         HashMap<String, Object> formData = new HashMap<>();
         formData.put("privacyPolicyAccepted", true);
+        formData.put("statementOfTruthAccepted", true);
 
         this.response = given()
                 .spec(this.openFormsRequestSpec)
