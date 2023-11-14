@@ -1,13 +1,13 @@
 package io.github.commonground.testing;
 
+import io.github.commonground.testing.data.FormStep;
+import io.github.commonground.testing.data.FormStepData;
+import io.github.commonground.testing.data.OpenFormsApiDataCompiler;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import io.github.commonground.testing.data.FormStep;
-import io.github.commonground.testing.data.FormStepData;
-import io.github.commonground.testing.data.OpenFormsApiDataCompiler;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
@@ -15,14 +15,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * OpenFormsApiClient is a class providing helper methods for easier creation of OpenForms
@@ -44,6 +43,7 @@ public class OpenFormsApiClient {
 
     /**
      * Creates a new instance of the <code>OpenFormsApiClient</code> for use with the supplied <code>formName</code>.
+     *
      * @param formName the name of the form for which a submission is to be created.
      */
     public OpenFormsApiClient(String formName) {
@@ -55,6 +55,7 @@ public class OpenFormsApiClient {
 
     /**
      * Starts an anonymous submission for the form that this <code>OpenFormsApiClient</code> is associated with.
+     *
      * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
     public void createAnonymousSubmission(List<FormStepData> formStepData) {
@@ -64,7 +65,8 @@ public class OpenFormsApiClient {
 
     /**
      * Starts an anonymous submission for the form that this <code>OpenFormsApiClient</code> is associated with.
-     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
+     *
+     * @param formStepData            a list of <code>FormStepData</code> objects to be used when creating the submission.
      * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
      *                                of form step data elements does not match the number of steps in the form.
      */
@@ -86,7 +88,12 @@ public class OpenFormsApiClient {
         String csrfCookie = this.response.getCookie(this.config.getCsrfCookieName());
         String sessionCookie = this.response.getCookie(this.config.getSessionCookieName());
 
-        createRequestSpecificationUsing(csrfCookie, sessionCookie);
+        Map<String, String> cookies = new HashMap<>();
+
+        cookies.put(this.config.getCsrfCookieName(), csrfCookie);
+        cookies.put(this.config.getSessionCookieName(), sessionCookie);
+
+        createRequestSpecificationUsing(cookies);
 
         getFormDetailsFor(formUrl);
 
@@ -105,32 +112,30 @@ public class OpenFormsApiClient {
 
     /**
      * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
-     * associated with the supplied <code>csrfCookie</code> and <code>sessionCookie</code>.
-     * @param csrfCookie The CSRF cookie used to prevent cross-site request forgery attacks.
-     * @param sessionCookie The session cookie returned when a user is successfully authenticated for this form.
+     * associated with the supplied <code>cookies</code>.
+     * @param cookies A map containing all cookies to be added to the requests required when creating the submission.
      * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
-    public void createSubmission(String csrfCookie, String sessionCookie, List<FormStepData> formStepData) {
+    public void createSubmission(Map<String, String> cookies, List<FormStepData> formStepData) {
 
-        this.createSubmission(csrfCookie, sessionCookie, formStepData, false);
+        this.createSubmission(cookies, formStepData, false);
     }
 
     /**
      * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
-     * associated with the supplied <code>csrfCookie</code> and <code>sessionCookie</code>.
-     * @param csrfCookie The CSRF cookie used to prevent cross-site request forgery attacks.
-     * @param sessionCookie The session cookie returned when a user is successfully authenticated for this form.
-     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
+     * associated with the supplied <code>cookies</code>.
+     * @param cookies A map containing all cookies to be added to the requests required when creating the submission.     *
+     * @param formStepData            a list of <code>FormStepData</code> objects to be used when creating the submission.
      * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
      *                                of form step data elements does not match the number of steps in the form.
      */
-    public void createSubmission(String csrfCookie, String sessionCookie, List<FormStepData> formStepData, boolean failOnStepCountMismatch) {
+    public void createSubmission(Map<String, String> cookies, List<FormStepData> formStepData, boolean failOnStepCountMismatch) {
 
         String formUrl = String.format("%s/%s", this.config.getBaseUri(), this.formName);
 
         LOGGER.info("Initializing submission of form '{}'", this.formName);
 
-        createRequestSpecificationUsing(csrfCookie, sessionCookie);
+        createRequestSpecificationUsing(cookies);
 
         getFormDetailsFor(formUrl);
 
@@ -147,14 +152,13 @@ public class OpenFormsApiClient {
         deleteSubmissionSession();
     }
 
-    private void createRequestSpecificationUsing(String csrfCookie, String sessionCookie) {
+    private void createRequestSpecificationUsing(Map<String, String> cookies) {
 
         this.openFormsRequestSpec = new RequestSpecBuilder()
                 .setBaseUri(this.config.getBaseUri())
                 .setBasePath(this.config.getBasePath())
                 .setContentType(ContentType.JSON)
-                .addCookie(this.config.getCsrfCookieName(), csrfCookie)
-                .addCookie(this.config.getSessionCookieName(), sessionCookie)
+                .addCookies(cookies)
                 .build();
     }
 
@@ -208,7 +212,7 @@ public class OpenFormsApiClient {
 
         LOGGER.info("Submitting form steps using form data...");
 
-        for(FormStep formStep : formSteps) {
+        for (FormStep formStep : formSteps) {
 
             String referer = String.format("%s/%s/stap/%s", this.config.getBaseUri(), this.formName, formStep.getName());
             String formStepEndpoint = String.format("/submissions/%s/steps/%s", this.submissionId, formStep.getUuid());
@@ -216,7 +220,6 @@ public class OpenFormsApiClient {
             this.response = given()
                     .spec(this.openFormsRequestSpec)
                     .header("Referer", referer)
-                    .header(this.config.getCsrfHeaderName(), this.csrfToken)
                     .when()
                     .get(formStepEndpoint)
                     .then()
@@ -272,6 +275,7 @@ public class OpenFormsApiClient {
 
         HashMap<String, Object> formData = new HashMap<>();
         formData.put("privacyPolicyAccepted", true);
+        formData.put("statementOfTruthAccepted", true);
 
         this.response = given()
                 .spec(this.openFormsRequestSpec)
@@ -314,8 +318,7 @@ public class OpenFormsApiClient {
 
         Properties prop = new Properties();
 
-        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("openforms.properties"))
-        {
+        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("openforms.properties")) {
             if (stream == null) {
                 throw new FileNotFoundException("Could not find file 'openforms.properties' on the classpath.");
             }
