@@ -1,13 +1,13 @@
 package io.github.commonground.testing;
 
+import io.github.commonground.testing.data.FormStep;
+import io.github.commonground.testing.data.FormStepData;
+import io.github.commonground.testing.data.OpenFormsApiDataCompiler;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import io.github.commonground.testing.data.FormStep;
-import io.github.commonground.testing.data.FormStepData;
-import io.github.commonground.testing.data.OpenFormsApiDataCompiler;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
