@@ -88,7 +88,12 @@ public class OpenFormsApiClient {
         String csrfCookie = this.response.getCookie(this.config.getCsrfCookieName());
         String sessionCookie = this.response.getCookie(this.config.getSessionCookieName());
 
-        createRequestSpecificationUsing(csrfCookie, sessionCookie);
+        Map<String, String> cookies = new HashMap<>();
+
+        cookies.put(this.config.getCsrfCookieName(), csrfCookie);
+        cookies.put(this.config.getSessionCookieName(), sessionCookie);
+
+        createRequestSpecificationUsing(cookies);
 
         getFormDetailsFor(formUrl);
 
