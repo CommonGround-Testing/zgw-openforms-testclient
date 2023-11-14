@@ -20,9 +20,7 @@ import java.util.Properties;
 import static io.restassured.RestAssured.given;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * OpenFormsApiClient is a class providing helper methods for easier creation of OpenForms
@@ -44,6 +42,7 @@ public class OpenFormsApiClient {
 
     /**
      * Creates a new instance of the <code>OpenFormsApiClient</code> for use with the supplied <code>formName</code>.
+     *
      * @param formName the name of the form for which a submission is to be created.
      */
     public OpenFormsApiClient(String formName) {
@@ -55,6 +54,7 @@ public class OpenFormsApiClient {
 
     /**
      * Starts an anonymous submission for the form that this <code>OpenFormsApiClient</code> is associated with.
+     *
      * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
     public void createAnonymousSubmission(List<FormStepData> formStepData) {
@@ -64,7 +64,8 @@ public class OpenFormsApiClient {
 
     /**
      * Starts an anonymous submission for the form that this <code>OpenFormsApiClient</code> is associated with.
-     * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
+     *
+     * @param formStepData            a list of <code>FormStepData</code> objects to be used when creating the submission.
      * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
      *                                of form step data elements does not match the number of steps in the form.
      */
