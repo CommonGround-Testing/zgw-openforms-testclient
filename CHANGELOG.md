@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet
 
+### [2.0.1] - 2023-11-16
+
+#### Fixed
+
+- Added a (for now) hardcoded waiting time before creating a submission to reduce chances of HTTP 403 issues
+
 ### [2.0.0] - 2023-11-14
 
 #### Changed

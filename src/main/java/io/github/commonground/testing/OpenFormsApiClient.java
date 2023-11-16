@@ -143,8 +143,6 @@ public class OpenFormsApiClient {
             OpenFormsApiDataCompiler.verifyNumberOfSteps(this.formDetailsResponse, formStepData);
         }
 
-
-
         try {
             Thread.sleep(2000);
             startFormSubmissionFor(formUrl);
