@@ -85,6 +85,15 @@ public class OpenFormsApiClient {
                 .statusCode(200)
                 .extract().response();
 
+        this.response = given()
+                .contentType(ContentType.JSON)
+                .header("Referer", formUrl)
+                .when()
+                .get("https://openformulieren-zgw.test.denhaag.nl/api/v2/i18n/formio/nl")
+                .then()
+                .statusCode(200)
+                .extract().response();
+
         String csrfCookie = this.response.getCookie(this.config.getCsrfCookieName());
         String sessionCookie = this.response.getCookie(this.config.getSessionCookieName());
 
@@ -113,7 +122,8 @@ public class OpenFormsApiClient {
     /**
      * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
      * associated with the supplied <code>cookies</code>.
-     * @param cookies A map containing all cookies to be added to the requests required when creating the submission.
+     *
+     * @param cookies      A map containing all cookies to be added to the requests required when creating the submission.
      * @param formStepData a list of <code>FormStepData</code> objects to be used when creating the submission.
      */
     public void createSubmission(Map<String, String> cookies, List<FormStepData> formStepData) {
@@ -124,7 +134,8 @@ public class OpenFormsApiClient {
     /**
      * Completes a submission for the form that this <code>OpenFormsApiClient</code> is associated with for the user
      * associated with the supplied <code>cookies</code>.
-     * @param cookies A map containing all cookies to be added to the requests required when creating the submission.     *
+     *
+     * @param cookies                 A map containing all cookies to be added to the requests required when creating the submission.     *
      * @param formStepData            a list of <code>FormStepData</code> objects to be used when creating the submission.
      * @param failOnStepCountMismatch flag indicating whether or not to throw an exception when the supplied number
      *                                of form step data elements does not match the number of steps in the form.
@@ -143,13 +154,7 @@ public class OpenFormsApiClient {
             OpenFormsApiDataCompiler.verifyNumberOfSteps(this.formDetailsResponse, formStepData);
         }
 
-        try {
-            Thread.sleep(2000);
-            startFormSubmissionFor(formUrl);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
+        getFormSubmissionFor(formUrl);
 
         completeFormSteps(formStepData);
 
@@ -183,6 +188,33 @@ public class OpenFormsApiClient {
 
         this.formId = this.formDetailsResponse.path("uuid");
         this.csrfToken = this.formDetailsResponse.header(this.config.getCsrfHeaderName());
+    }
+
+    private void getFormSubmissionFor(String formUrl) {
+        LOGGER.info("Get submission of form '{}'", formUrl);
+
+        this.response = given()
+                .spec(this.openFormsRequestSpec)
+                .when()
+                .get("/submissions")
+                .then()
+                .extract().response();
+
+        int maxRetries = 0;
+
+        while ((this.response.statusCode() == 404 || this.response.statusCode() == 403) && maxRetries<40) {
+            this.response = given()
+                    .spec(this.openFormsRequestSpec)
+                    .when()
+                    .get("/submissions")
+                    .then()
+                    .extract().response();
+
+            maxRetries++;
+        }
+
+        this.submissionId = this.response.path("results[0].id");
+        this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
     }
 
     private void startFormSubmissionFor(String formUrl) {
@@ -233,7 +265,6 @@ public class OpenFormsApiClient {
                     .extract().response();
 
             this.csrfToken = this.response.header(this.config.getCsrfHeaderName());
-
             this.response = given()
                     .spec(this.openFormsRequestSpec)
                     .header("Referer", referer)
