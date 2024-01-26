@@ -37,10 +37,11 @@ Om succesvol een submission aan te maken moet het volgende worden meegegeven aan
 Het `FormStepData`-object heeft 3 properties:
 
 | property | type | functie | verplicht |
-| --- | --- | --- | --- |
-| data | `HashMap<String, Object>` | De data die voor een specifieke formulierstap moet worden ingevuld | ja |
+|----------| --- | --- | --- |
+| data     | `HashMap<String, Object>` | De data die voor een specifieke formulierstap moet worden ingevuld | ja |
 | metadata | `HashMap<String, Object>` | Eventueel gewenste meta-data die moet worden meegezonden in een formulierstap | nee (default: leeg) |
-| state | String | De gewenste status van de formulierstap in de submission | nee (default: `"submitted"`) |
+| state    | String | De gewenste status van de formulierstap in de submission | nee (default: `"submitted"`) |
+| slug     | String | Unieke string per stap zodat de juiste volgorde aan stappen bepaald kan worden voor verschillende workflows | ja |
 
 De OpenFormsApiClient zorgt dat de inhoud van deze velden op de juiste manier naar JSON wordt geserialiseerd.
 
