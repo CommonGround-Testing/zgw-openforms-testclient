@@ -34,7 +34,7 @@ Om succesvol een submission aan te maken moet het volgende worden meegegeven aan
 | cookies       | `Map<String, String>` | Cookies gekoppeld aan een actieve OpenForms-gebruikerssessie                                                     |
 | formStepdata  | `List<FormStepData>`  | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
 
-Het `FormStepData`-object heeft 3 properties:
+Het `FormStepData`-object heeft 4 properties:
 
 | property | type | functie | verplicht |
 |----------| --- | --- | --- |
