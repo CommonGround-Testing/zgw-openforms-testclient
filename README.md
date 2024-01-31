@@ -48,9 +48,9 @@ De OpenFormsApiClient zorgt dat de inhoud van deze velden op de juiste manier na
 ## Anonieme submissions
 Wanneer een formulier anonieme submissions toestaat (er hoeft dus niet te worden ingelogd), kan dat met de methode `createAnonymousSubmission()`. Deze heeft slechts 1 argument:
 
-| parameter | type | functie                                                                                                          |
-| --- | --- |------------------------------------------------------------------------------------------------------------------|
-| formStepdata | `List<FormStepData>` | Een geordende lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
+| parameter | type | functie                                                                                                         |
+| --- | --- |-----------------------------------------------------------------------------------------------------------------|
+| formStepdata | `List<FormStepData>` | Een lijst van `FormStepData`-objecten die in de verschillende formulierstappen moeten worden verzonden |
 
 ## Configuratie
 Om de library te configureren en default settings te overschrijven, voeg een `openforms.properties` file toe aan je classpath.
@@ -69,4 +69,45 @@ Deze settings worden ondersteund door de library:
 
 ## Voorbeeldimplementatie
 
-Volgt snel.
+We zullen starten met een voorbeeld configuratie. Dit is de configuratie voor de testomgeving van openformulieren voor de gemeente den haag.
+Op de roadmap staat nog de taak om dit environment onafhankelijk te maken.
+
+
+
+    csrf.cookie.name=csrftoken
+    csrf.header.name=X-CSRFToken
+    session.cookie.name=openforms_sessionid
+    base.uri=https://openformulieren-zgw.test.denhaag.nl
+    base.path=api/v2
+    polling.timeout=120
+    polling.interval=2
+    
+
+
+Vervolgens zal er met een automation framework zoals Serenity ingelogd moeten worden in een openforms applicatie. Bij
+de gemeente Den Haag is dit inloggen via Digid. Hierna kunnen de gesette cookies met een automation framework uit de 
+browser gehaald worden.
+
+    final Map<String, String> cookies = this.login_bij_openforms_op(this.bezwaarMakenPage);
+
+Het opzetten van de lijst aan FormStepData zal het meest tijdconsumerend zijn. Per stap wordt er een FormStepData 
+aangemaakt. De slugs en meer metadata van alle stappen kan gevonden worden met het endpoint `/forms/<naam formulier>`.
+De data kan je vinden als je alle calls bekijkt die gemaakt worden als je een formulier doorloopt (in je developer console).
+
+    final HashMap<String, Object> formStep02Data = new HashMap<>();
+
+    formStep02Data.put("voorletters-machtiginggever", "S.");
+    formStep02Data.put("tussenvoegsels-machtiginggever", ZgwDigidUser1.LAST_NAME_PREFIX);
+    formStep02Data.put("achternaam-machtiginggever", ZgwDigidUser1.LAST_NAME);
+    formStep02Data.put("postcode", ZgwDigidUser1.ADDRESS_ZIPCODE);
+    formStep02Data.put("huisnummer-machtiginggever", ZgwDigidUser1.ADDRESS_HOUSE_NUMBER);
+    formStep02Data.put("straatnaam-machtiginggever", ZgwDigidUser1.ADDRESS_STREET);
+    formStep02Data.put("woonplaats", ZgwDigidUser1.ADDRESS_CITY);
+
+    FormStepData formData = new FormStepData(formStep02Data, "machtiginggever");
+
+Uiteindelijk kunnen we vervolgens met de naam van het formulier een nieuwe submission submitten.
+
+    final String formulier = "testformulier-zgw-platform-bezwaar";
+
+    new OpenFormsApiClient(formulier).createSubmission(cookies, formData);
